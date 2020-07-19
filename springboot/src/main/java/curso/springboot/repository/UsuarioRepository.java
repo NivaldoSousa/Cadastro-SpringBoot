@@ -1,18 +1,16 @@
 package curso.springboot.repository;
 
-import java.util.List;
-
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import curso.springboot.model.Telefone;
+import curso.springboot.model.Usuario;
 
 @Repository
 @Transactional
-public interface TelefoneRepository extends CrudRepository<Telefone, Long> {
+public interface UsuarioRepository extends CrudRepository<Usuario, Long> {
 
-	@Query("select t from Telefone t where t.pessoa.id = ?1")
-	public List<Telefone> getTelefones(Long pessoaid);
+	@Query("select u from Usuario u where u.login = ?1 ")
+	Usuario findUserByLogin(String login);
 }
