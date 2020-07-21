@@ -44,6 +44,8 @@ public class PessoaController {
 	public ModelAndView salvar(@Valid Pessoa pessoa, BindingResult bindingResult) { // @valid e BindingResult é para
 																					// validaçoes dos campos
 
+		pessoa.setTelefones(telefoneRepository.getTelefones(pessoa.getId())); // carregando a lista de telefone do usuario antes de salvar
+		
 		// validaçoes dos campos inicio
 		if (bindingResult.hasErrors()) {
 			ModelAndView modelAndView = new ModelAndView("cadastro/cadastropessoa");
