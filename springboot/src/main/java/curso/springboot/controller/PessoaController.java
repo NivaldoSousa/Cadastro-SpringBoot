@@ -102,11 +102,20 @@ public class PessoaController {
 		return modelAndView;
 
 	}
-
+    // metodo de pesquisar por nome com filtro de campo de sexo
 	@PostMapping("**/pesquisarpessoa") // essa anotaçao mapea a url por post
-	public ModelAndView pesquisar(@RequestParam("nomepesquisa") String nomepesquisa) {
+	public ModelAndView pesquisar(@RequestParam("nomepesquisa") String nomepesquisa, @RequestParam("pesqsexo") String pesqsexo) {
+		
+		List<Pessoa> pessoas = new ArrayList<Pessoa>();
+		
+		if(pesqsexo !=null && !pesqsexo.isEmpty()){
+			pessoas = pessoaRepository.findPessoasByNameSexo(nomepesquisa,pesqsexo);
+		}else {
+			pessoas = pessoaRepository.findPessoasByName(nomepesquisa);
+		}
+		
 		ModelAndView modelAndView = new ModelAndView("cadastro/cadastropessoa");
-		modelAndView.addObject("pessoas", pessoaRepository.findPessoasByName(nomepesquisa));
+		modelAndView.addObject("pessoas",pessoas);
 		modelAndView.addObject("pessoaobj", new Pessoa());
 		return modelAndView;
 	}

@@ -13,7 +13,6 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
-
 @Entity
 public class Pessoa implements Serializable {
 
@@ -34,22 +33,33 @@ public class Pessoa implements Serializable {
 	@Min(value = 18, message = "Obrigatório ser maior que 18 anos")
 	private int idade;
 
-	@OneToMany(mappedBy = "pessoa", orphanRemoval = true, cascade = CascadeType.ALL) // orphan e cascade serve para deletar os objetos pai amarrados com os filhos
+	@OneToMany(mappedBy = "pessoa", orphanRemoval = true, cascade = CascadeType.ALL) // orphan e cascade serve para
+																						// deletar os objetos pai
+																						// amarrados com os filhos
 	private List<Telefone> telefones;
 
 	private String cep;
-	
+
 	private String rua;
-	
+
 	private String bairro;
-	
+
 	private String cidade;
-	
+
 	private String uf;
-	
+
 	private String ibge;
-	
-	
+
+	private String sexopessoa;
+
+	public void setSexopessoa(String sexopessoa) {
+		this.sexopessoa = sexopessoa;
+	}
+
+	public String getSexopessoa() {
+		return sexopessoa;
+	}
+
 	public String getCep() {
 		return cep;
 	}
