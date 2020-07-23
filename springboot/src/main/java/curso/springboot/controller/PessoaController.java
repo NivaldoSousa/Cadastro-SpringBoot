@@ -3,6 +3,8 @@ package curso.springboot.controller;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +33,9 @@ public class PessoaController {
 	@Autowired
 	private PessoaRepository pessoaRepository;
 
+	@Autowired
+	private ReportUtil reportUtil;
+
 	@RequestMapping(method = RequestMethod.GET, value = "/cadastropessoa")
 	public ModelAndView inicio() {
 		ModelAndView modelAndView = new ModelAndView("cadastro/cadastropessoa");
@@ -44,8 +49,9 @@ public class PessoaController {
 	public ModelAndView salvar(@Valid Pessoa pessoa, BindingResult bindingResult) { // @valid e BindingResult é para
 																					// validaçoes dos campos
 
-		pessoa.setTelefones(telefoneRepository.getTelefones(pessoa.getId())); // carregando a lista de telefone do usuario antes de salvar
-		
+		pessoa.setTelefones(telefoneRepository.getTelefones(pessoa.getId())); // carregando a lista de telefone do
+																				// usuario antes de salvar
+
 		// validaçoes dos campos inicio
 		if (bindingResult.hasErrors()) {
 			ModelAndView modelAndView = new ModelAndView("cadastro/cadastropessoa");
@@ -102,22 +108,68 @@ public class PessoaController {
 		return modelAndView;
 
 	}
-    // metodo de pesquisar por nome com filtro de campo de sexo
+
+	// metodo de pesquisar por nome com filtro de campo de sexo
 	@PostMapping("**/pesquisarpessoa") // essa anotaçao mapea a url por post
-	public ModelAndView pesquisar(@RequestParam("nomepesquisa") String nomepesquisa, @RequestParam("pesqsexo") String pesqsexo) {
-		
+	public ModelAndView pesquisar(@RequestParam("nomepesquisa") String nomepesquisa,
+			@RequestParam("pesqsexo") String pesqsexo) {
+
 		List<Pessoa> pessoas = new ArrayList<Pessoa>();
-		
-		if(pesqsexo !=null && !pesqsexo.isEmpty()){
-			pessoas = pessoaRepository.findPessoasByNameSexo(nomepesquisa,pesqsexo);
-		}else {
+
+		if (pesqsexo != null && !pesqsexo.isEmpty()) {
+			pessoas = pessoaRepository.findPessoasByNameSexo(nomepesquisa, pesqsexo);
+		} else {
 			pessoas = pessoaRepository.findPessoasByName(nomepesquisa);
 		}
-		
+
 		ModelAndView modelAndView = new ModelAndView("cadastro/cadastropessoa");
-		modelAndView.addObject("pessoas",pessoas);
+		modelAndView.addObject("pessoas", pessoas);
 		modelAndView.addObject("pessoaobj", new Pessoa());
 		return modelAndView;
+	}
+
+	@GetMapping("**/pesquisarpessoa") // essa anotaçao mapea a url por post
+	public void imprimePdf(@RequestParam("nomepesquisa") String nomepesquisa, @RequestParam("pesqsexo") String pesqsexo,
+			HttpServletRequest request, HttpServletResponse response) throws Exception {
+		
+		List<Pessoa> pessoas = new ArrayList<Pessoa>();
+
+		if (pesqsexo != null && !pesqsexo.isEmpty() && nomepesquisa != null && !nomepesquisa.isEmpty()) { // Busca por nome e sexo
+			pessoas = pessoaRepository.findPessoasByNameSexo(nomepesquisa, pesqsexo);
+
+		} else if (nomepesquisa != null && !nomepesquisa.isEmpty()) { // Busca somente por nome
+			pessoas = pessoaRepository.findPessoasByName(nomepesquisa);
+
+		} 
+		
+		else if (pesqsexo != null && !pesqsexo.isEmpty()) { // Busca somente por sexo
+			pessoas = pessoaRepository.findPessoasBySexo(pesqsexo);
+
+	}
+		
+		else {
+			Iterable<Pessoa> iterator = pessoaRepository.findAll(); // Busca todos
+			for (Pessoa pessoa : iterator) {
+				pessoas.add(pessoa);
+			}
+		}
+		/* Chamar o serviço que faz a geração do relatorio */
+		byte[] pdf = reportUtil.gerarRelatorio(pessoas, "pessoa", request.getServletContext());
+		
+		/* Tamanho da resposta do navegador */
+		response.setContentLength(pdf.length);
+
+		/* Definir na resposta o tipo de arquivo */
+		response.setContentType("application/octet-stream"); // consegue fazer qualquer tipo de download com essa
+																// resposta ex. midia, pdf, imagem
+
+		/* Definir o cabeçalho da resposta */
+		String headerKey = "Content-Disposition";
+		String headerValue = String.format("attachment; filename=\"%s\"", "relatorio.pdf");
+		response.setHeader(headerKey, headerValue);
+
+		/* Finaliza a resposta para o navegador */
+		response.getOutputStream().write(pdf);
 	}
 
 	@GetMapping("/telefones/{idpessoa}") // mapear a url do html do "editar"
