@@ -22,12 +22,13 @@ import org.springframework.web.servlet.ModelAndView;
 import curso.springboot.model.Pessoa;
 import curso.springboot.model.Telefone;
 import curso.springboot.repository.PessoaRepository;
+import curso.springboot.repository.ProfissaoRepository;
 import curso.springboot.repository.TelefoneRepository;
 
 @Controller
 public class PessoaController {
 
-	@Autowired
+	@Autowired // injeçao de dependecia para ter acesso aos recursos do repository
 	private TelefoneRepository telefoneRepository;
 
 	@Autowired
@@ -36,12 +37,16 @@ public class PessoaController {
 	@Autowired
 	private ReportUtil reportUtil;
 
+	@Autowired
+	private ProfissaoRepository profissaoRepository;
+	
 	@RequestMapping(method = RequestMethod.GET, value = "/cadastropessoa")
 	public ModelAndView inicio() {
 		ModelAndView modelAndView = new ModelAndView("cadastro/cadastropessoa");
 		modelAndView.addObject("pessoaobj", new Pessoa());
 		Iterable<Pessoa> pessoasIt = pessoaRepository.findAll();
 		modelAndView.addObject("pessoas", pessoasIt);
+		modelAndView.addObject("profissoes",profissaoRepository.findAll());// na hora que abrir a tela ira carregar as profissoes
 		return modelAndView;
 	}
 
@@ -64,6 +69,7 @@ public class PessoaController {
 				msg.add(objectError.getDefaultMessage()); // defaultmessage vem das anotaçoes e outras
 			}
 			modelAndView.addObject("msg", msg);
+			modelAndView.addObject("profissoes",profissaoRepository.findAll());// na hora que abrir a tela ira carregar as profissoes
 			return modelAndView;
 
 		}
@@ -93,6 +99,7 @@ public class PessoaController {
 		java.util.Optional<Pessoa> pessoa = pessoaRepository.findById(idpessoa);
 		ModelAndView modelAndView = new ModelAndView("cadastro/cadastropessoa");
 		modelAndView.addObject("pessoaobj", pessoa.get());
+		modelAndView.addObject("profissoes",profissaoRepository.findAll());// na hora que abrir a tela ira carregar as profissoes
 		return modelAndView;
 
 	}
