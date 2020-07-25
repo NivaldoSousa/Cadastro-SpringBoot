@@ -1,5 +1,6 @@
 package curso.springboot.controller;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
 import curso.springboot.model.Pessoa;
@@ -50,9 +52,9 @@ public class PessoaController {
 		return modelAndView;
 	}
 
-	@RequestMapping(method = RequestMethod.POST, value = "**/salvarpessoa")
-	public ModelAndView salvar(@Valid Pessoa pessoa, BindingResult bindingResult) { // @valid e BindingResult é para
-																					// validaçoes dos campos
+	@RequestMapping(method = RequestMethod.POST, value = "**/salvarpessoa", consumes = {"multipart/form-data"}) //consumes diz que o formulário vai salvar um arquivo
+	public ModelAndView salvar(@Valid Pessoa pessoa, BindingResult bindingResult, final MultipartFile file) throws IOException { // @valid e BindingResult é para validaçoes dos campos
+																					
 
 		pessoa.setTelefones(telefoneRepository.getTelefones(pessoa.getId())); // carregando a lista de telefone do
 																				// usuario antes de salvar
@@ -71,8 +73,24 @@ public class PessoaController {
 			modelAndView.addObject("msg", msg);
 			modelAndView.addObject("profissoes",profissaoRepository.findAll());// na hora que abrir a tela ira carregar as profissoes
 			return modelAndView;
+		}
+		if (file.getSize() > 0) { // cadastrando o currículo
+			pessoa.setCurriculo(file.getBytes());
+			pessoa.setTipoFileCurriculo(file.getContentType());
+			pessoa.setNomeFileCurriculo(file.getOriginalFilename());
+		
+		} else {
+			if (pessoa.getId() != null && pessoa.getId() > 0) { // mante o upload quando for editar
+				
+				Pessoa pessoaTemp = pessoaRepository.findById(pessoa.getId()).get();
+				
+				pessoa.setCurriculo(pessoaTemp.getCurriculo());
+				pessoa.setTipoFileCurriculo(pessoaTemp.getTipoFileCurriculo());
+				pessoa.setNomeFileCurriculo(pessoaTemp.getNomeFileCurriculo());
+			}
 
 		}
+		
 		// validaçoes dos campos termino
 
 		pessoaRepository.save(pessoa);

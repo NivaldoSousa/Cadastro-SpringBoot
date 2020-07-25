@@ -23,6 +23,8 @@
 	src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 
 
+
+
 <style type="text/css">
 table.striped>tbody <tr:nth-child(odd) {
 	background-color: rgba(158, 154, 154, 0.5);
@@ -47,7 +49,7 @@ form input[type=submit] {
 			<br />
 
 			<form action="salvarpessoa" method="post" th:object="${pessoaobj}"
-				class="col s12" id="formpessoa">
+				class="col s12" id="formpessoa" enctype="multipart/form-data">
 
 				<div class="row">
 					<div class="input-field col s6">
@@ -96,12 +98,26 @@ form input[type=submit] {
 				</div>
 
 				<div class="row">
-					<div class="input-field col s12">
+					<div class="input-field col s6">
 						<label for="cargo" class="active">Cargo</label> <select
 							class="browser-default" th:field="*{cargo}" id="cargo">
 							<option th:each="c : ${T(curso.springboot.model.Cargo).values()}"
 								th:value="${c.valor}" th:text="${c.nome}">
 						</select>
+					</div>
+
+					<div class="input-field col s6">
+						<label for=dataNascimento class="active"> Data Nascimento</label>
+						<input type="date" id="dataNascimento"
+							th:field="*{dataNascimento}" name="dataNascimento"
+							placeholder="Insira Data de Nasc.">
+					</div>
+				</div>
+
+				<div class="row">
+					<div class="input-field col s12">
+						<label for="file" class="active">Currículo</label> <input
+							type="file" id="file" name="file" class="validate">
 					</div>
 				</div>
 
