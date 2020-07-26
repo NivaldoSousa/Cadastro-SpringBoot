@@ -9,6 +9,11 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
@@ -42,16 +47,30 @@ public class PessoaController {
 	@Autowired
 	private ProfissaoRepository profissaoRepository;
 	
-	@RequestMapping(method = RequestMethod.GET, value = "/cadastropessoa")
+	@RequestMapping(method = RequestMethod.GET, value = "**/cadastropessoa")
 	public ModelAndView inicio() {
 		ModelAndView modelAndView = new ModelAndView("cadastro/cadastropessoa");
 		modelAndView.addObject("pessoaobj", new Pessoa());
-		Iterable<Pessoa> pessoasIt = pessoaRepository.findAll();
+		
+		/*Carregando a lista por paginação*/
+		Iterable<Pessoa> pessoasIt = pessoaRepository.findAll(PageRequest.of(0, 5, Sort.by("nome")));
 		modelAndView.addObject("pessoas", pessoasIt);
 		modelAndView.addObject("profissoes",profissaoRepository.findAll());// na hora que abrir a tela ira carregar as profissoes
 		return modelAndView;
 	}
 
+	/*Metodo para carrega as paginas Ex.pagina 1 , 2 , 3 , 4 etc*/
+	@GetMapping("/pessoaspag")
+	public ModelAndView carregaPessoaPorPaginaçao(@PageableDefault(size = 5) Pageable pageable, ModelAndView model) {
+
+		Page<Pessoa> pagePessoa = pessoaRepository.findAll(pageable);
+		model.addObject("pessoas", pagePessoa);
+		model.addObject("pessoaobj", new Pessoa());
+		model.setViewName("cadastro/cadastropessoa");
+		return model;
+	}
+	
+	
 	@RequestMapping(method = RequestMethod.POST, value = "**/salvarpessoa", consumes = {"multipart/form-data"}) //consumes diz que o formulário vai salvar um arquivo
 	public ModelAndView salvar(@Valid Pessoa pessoa, BindingResult bindingResult, final MultipartFile file) throws IOException { // @valid e BindingResult é para validaçoes dos campos
 																					
@@ -62,8 +81,7 @@ public class PessoaController {
 		// validaçoes dos campos inicio
 		if (bindingResult.hasErrors()) {
 			ModelAndView modelAndView = new ModelAndView("cadastro/cadastropessoa");
-			Iterable<Pessoa> pessoasIt = pessoaRepository.findAll();
-			modelAndView.addObject("pessoas", pessoasIt);
+			modelAndView.addObject("pessoas", pessoaRepository.findAll(PageRequest.of(0, 5, Sort.by("nome"))));
 			modelAndView.addObject("pessoaobj", pessoa);
 
 			List<String> msg = new ArrayList<String>();
@@ -96,8 +114,7 @@ public class PessoaController {
 		pessoaRepository.save(pessoa);
 
 		ModelAndView andView = new ModelAndView("cadastro/cadastropessoa");
-		Iterable<Pessoa> pessoasIt = pessoaRepository.findAll();
-		andView.addObject("pessoas", pessoasIt);
+		andView.addObject("pessoas", pessoaRepository.findAll(PageRequest.of(0, 5, Sort.by("nome"))));
 		andView.addObject("pessoaobj", new Pessoa());
 		return andView;
 
@@ -106,8 +123,7 @@ public class PessoaController {
 	@RequestMapping(method = RequestMethod.GET, value = "/listapessoas")
 	public ModelAndView pessoas() {
 		ModelAndView andView = new ModelAndView("cadastro/cadastropessoa");
-		Iterable<Pessoa> pessoasIt = pessoaRepository.findAll();
-		andView.addObject("pessoas", pessoasIt);
+		andView.addObject("pessoas", pessoaRepository.findAll(PageRequest.of(0, 5, Sort.by("nome"))));
 		andView.addObject("pessoaobj", new Pessoa());
 		return andView;
 	}
@@ -128,7 +144,7 @@ public class PessoaController {
 		pessoaRepository.deleteById(idpessoa);
 
 		ModelAndView modelAndView = new ModelAndView("cadastro/cadastropessoa");
-		modelAndView.addObject("pessoas", pessoaRepository.findAll());
+		modelAndView.addObject("pessoas", pessoaRepository.findAll(PageRequest.of(0, 5, Sort.by("nome"))));
 		modelAndView.addObject("pessoaobj", new Pessoa());
 		return modelAndView;
 
